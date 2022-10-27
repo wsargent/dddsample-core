@@ -28,7 +28,7 @@ import java.util.Map;
  * helps us shield the domain model classes.
  * <p>
  *
- * @eee se.citerus.dddsample.application.web.CargoTrackingViewAdapter
+ * @see se.citerus.dddsample.interfaces.tracking.CargoTrackingViewAdapter
  * @see se.citerus.dddsample.interfaces.booking.web.CargoAdminController
  */
 @Controller
@@ -47,7 +47,7 @@ public final class CargoTrackingController {
 
     @RequestMapping(method = RequestMethod.GET)
     public String get(final Map<String, Object> model) {
-        model.put("trackCommand", new TrackCommand()); // TODO why is this method adding a TrackCommand without id?
+        model.put("trackCommand", new TrackCommand());
         return "track";
     }
 
@@ -56,17 +56,17 @@ public final class CargoTrackingController {
                                                              final TrackCommand command,
                                                              final Map<String, Object> model,
                                                              final BindingResult bindingResult) {
+        final Locale locale = RequestContextUtils.getLocale(request);
         new TrackCommandValidator().validate(command, bindingResult);
 
         final TrackingId trackingId = new TrackingId(command.getTrackingId());
         final Cargo cargo = cargoRepository.find(trackingId);
 
         if (cargo != null) {
-            final Locale locale = RequestContextUtils.getLocale(request);
             final List<HandlingEvent> handlingEvents = handlingEventRepository.lookupHandlingHistoryOfCargo(trackingId).distinctEventsByCompletionTime();
             model.put("cargo", new CargoTrackingViewAdapter(cargo, messageSource, locale, handlingEvents));
         } else {
-            bindingResult.rejectValue("trackingId", "cargo.unknown_id", new Object[]{command.getTrackingId()}, "Unknown tracking id");
+            bindingResult.rejectValue("trackingId", "cargo.unknown_id", new Object[]{command.getTrackingId()}, "");
         }
         return "track";
     }

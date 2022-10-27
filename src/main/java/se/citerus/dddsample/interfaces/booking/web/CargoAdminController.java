@@ -1,11 +1,14 @@
 package se.citerus.dddsample.interfaces.booking.web;
 
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import se.citerus.dddsample.interfaces.booking.facade.BookingServiceFacade;
 import se.citerus.dddsample.interfaces.booking.facade.dto.CargoRoutingDTO;
 import se.citerus.dddsample.interfaces.booking.facade.dto.LegDTO;
@@ -37,9 +40,11 @@ import java.util.Map;
 public final class CargoAdminController {
 
     private final BookingServiceFacade bookingServiceFacade;
+    private final MessageSource messageSource;
 
-    public CargoAdminController(BookingServiceFacade bookingServiceFacade) {
+    public CargoAdminController(BookingServiceFacade bookingServiceFacade, MessageSource messageSource) {
         this.bookingServiceFacade = bookingServiceFacade;
+        this.messageSource = messageSource;
     }
 
     @InitBinder
@@ -49,6 +54,7 @@ public final class CargoAdminController {
 
     @RequestMapping("/registration")
     public String registration(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model) throws Exception {
+        model.putAll(ImmutableMap.of("messageSource", messageSource, "locale", RequestContextUtils.getLocale(request)));
         List<LocationDTO> dtoList = bookingServiceFacade.listShippingLocations();
 
         List<String> unLocodeStrings = new ArrayList<String>();
@@ -74,6 +80,7 @@ public final class CargoAdminController {
 
     @RequestMapping("/list")
     public String list(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model) throws Exception {
+        model.putAll(ImmutableMap.of("messageSource", messageSource, "locale", RequestContextUtils.getLocale(request)));
         List<CargoRoutingDTO> cargoList = bookingServiceFacade.listAllCargos();
 
         model.put("cargoList", cargoList);
@@ -82,6 +89,7 @@ public final class CargoAdminController {
 
     @RequestMapping("/show")
     public String show(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model) throws Exception {
+        model.putAll(ImmutableMap.of("messageSource", messageSource, "locale", RequestContextUtils.getLocale(request)));
         String trackingId = request.getParameter("trackingId");
         CargoRoutingDTO dto = bookingServiceFacade.loadCargoForRouting(trackingId);
         model.put("cargo", dto);
@@ -90,6 +98,7 @@ public final class CargoAdminController {
 
     @RequestMapping("/selectItinerary")
     public String selectItinerary(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model) throws Exception {
+        model.putAll(ImmutableMap.of("messageSource", messageSource, "locale", RequestContextUtils.getLocale(request)));
         String trackingId = request.getParameter("trackingId");
 
         List<RouteCandidateDTO> routeCandidates = bookingServiceFacade.requestPossibleRoutesForCargo(trackingId);
@@ -123,6 +132,7 @@ public final class CargoAdminController {
 
     @RequestMapping(value = "/pickNewDestination")
     public String pickNewDestination(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model) throws Exception {
+        model.putAll(ImmutableMap.of("messageSource", messageSource, "locale", RequestContextUtils.getLocale(request)));
         List<LocationDTO> locations = bookingServiceFacade.listShippingLocations();
         model.put("locations", locations);
 

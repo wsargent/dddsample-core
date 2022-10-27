@@ -78,8 +78,8 @@ public class InterfacesApplicationContext implements WebMvcConfigurer {
     }
 
     @Bean
-    public CargoAdminController cargoAdminController(BookingServiceFacade bookingServiceFacade) {
-        return new CargoAdminController(bookingServiceFacade);
+    public CargoAdminController cargoAdminController(BookingServiceFacade bookingServiceFacade, MessageSource messageSource) {
+        return new CargoAdminController(bookingServiceFacade, messageSource);
     }
 
     @Bean

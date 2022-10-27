@@ -1,10 +1,9 @@
 package se.citerus.dddsample.interfaces.booking.facade.dto;
 
+import org.springframework.context.MessageSource;
+
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * DTO for registering and routing a cargo.
@@ -71,4 +70,13 @@ public final class CargoRoutingDTO implements Serializable {
     return arrivalDeadline;
   }
 
+  // TODO this method should be moved to a CargoAdminViewAdapter class
+  public String getSelectItinerarySummaryText(MessageSource messageSource, Locale locale) {
+    return messageSource.getMessage("cargo.admin.itinerary.summary", new Object[]{trackingId, origin, finalDestination}, locale);
+  }
+
+  // TODO this method should be moved to a CargoAdminViewAdapter class
+  public String getRouteCandidateCaption(Integer index, MessageSource messageSource, Locale locale) {
+    return messageSource.getMessage("cargo.admin.itinerary.routecandidatecaption", new Object[]{index}, locale);
+  }
 }
