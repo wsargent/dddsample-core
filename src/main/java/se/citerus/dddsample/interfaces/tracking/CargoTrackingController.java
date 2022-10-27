@@ -56,13 +56,13 @@ public final class CargoTrackingController {
                                                              final TrackCommand command,
                                                              final Map<String, Object> model,
                                                              final BindingResult bindingResult) {
-        final Locale locale = RequestContextUtils.getLocale(request);
         new TrackCommandValidator().validate(command, bindingResult);
 
         final TrackingId trackingId = new TrackingId(command.getTrackingId());
         final Cargo cargo = cargoRepository.find(trackingId);
 
         if (cargo != null) {
+            final Locale locale = RequestContextUtils.getLocale(request);
             final List<HandlingEvent> handlingEvents = handlingEventRepository.lookupHandlingHistoryOfCargo(trackingId).distinctEventsByCompletionTime();
             model.put("cargo", new CargoTrackingViewAdapter(cargo, messageSource, locale, handlingEvents));
         } else {
