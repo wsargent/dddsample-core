@@ -1,6 +1,5 @@
 package se.citerus.dddsample.interfaces;
 
-import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +8,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.support.OpenEntityManagerInViewInterceptor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -33,8 +31,8 @@ import se.citerus.dddsample.interfaces.tracking.ws.CargoTrackingRestService;
 
 import javax.persistence.EntityManager;
 import java.io.File;
-import java.util.Arrays;
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.Locale;
 
 @Configuration
@@ -54,6 +52,7 @@ public class InterfacesApplicationContext implements WebMvcConfigurer {
     public MessageSource messageSource() {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
+        messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
 
@@ -61,8 +60,9 @@ public class InterfacesApplicationContext implements WebMvcConfigurer {
     public LocaleResolver localeResolver() {
         AcceptHeaderLocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
         localeResolver.setDefaultLocale(Locale.ENGLISH);
-        localeResolver.setSupportedLocales(Arrays.asList(
-                new Locale("sv", "SE"), // add new locales below
+        localeResolver.setSupportedLocales(Arrays.asList( // add new locales below
+                new Locale("sv", "SE"),
+                Locale.SIMPLIFIED_CHINESE,
                 Locale.ENGLISH));
         return localeResolver;
     }
