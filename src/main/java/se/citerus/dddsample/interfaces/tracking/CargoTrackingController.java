@@ -57,6 +57,10 @@ public final class CargoTrackingController {
                                                              final Map<String, Object> model,
                                                              final BindingResult bindingResult) {
         new TrackCommandValidator().validate(command, bindingResult);
+        if (bindingResult.hasErrors()) {
+            bindingResult.rejectValue("trackingId", "error.required");
+            return "track";
+        }
 
         final TrackingId trackingId = new TrackingId(command.getTrackingId());
         final Cargo cargo = cargoRepository.find(trackingId);
