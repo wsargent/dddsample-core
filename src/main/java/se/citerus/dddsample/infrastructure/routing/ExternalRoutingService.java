@@ -73,7 +73,9 @@ public class ExternalRoutingService implements RoutingService {
     if (routeSpecification.isSatisfiedBy(itinerary)) {
       return true;
     } else {
-      logger.warn("Received itinerary that did not satisfy the route specification");
+      logger.warn("Received itinerary {} that did not satisfy the route specification {}", fb -> fb.list(
+        fb.apply(itinerary), fb.apply(routeSpecification)
+      ));
       return false;
     }
   }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Spring Boot has some logging documentation on the special properties / env vars for logging:
+  https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.logging
+  https://docs.spring.io/spring-boot/docs/current/reference/html/howto.html#howto.logging
+-->
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- logs to ./application.log by default -->
+    <!--    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}/}spring.ndjson}"/>-->
+    <property name="LOG_FILE" value="application.log"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{H:mm:ss.SSS} %highlight(%-5level) [%thread]: %message%n%ex</pattern>
+        </encoder>
+    </appender>
+
+    <!-- make file contain JSON structured logging -->
+    <include resource="json-file-appender.xml" />
+
+    <logger name="se.citerus.dddsample" level="TRACE"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>

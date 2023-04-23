@@ -41,7 +41,7 @@ public class BookingServiceImpl implements BookingService {
     Cargo cargo = cargoFactory.createCargo(originUnLocode, destinationUnLocode, arrivalDeadline);
 
     cargoRepository.store(cargo);
-    logger.info("Booked new cargo with tracking id {}", fb -> fb.apply(cargo.trackingId()));
+    logger.info("Booked new cargo {}", fb -> fb.apply(cargo));
 
     return cargo.trackingId();
   }
@@ -61,15 +61,17 @@ public class BookingServiceImpl implements BookingService {
   @Override
   @Transactional
   public void assignCargoToRoute(final Itinerary itinerary, final TrackingId trackingId) {
-    final Cargo cargo = cargoRepository.find(trackingId);
-    if (cargo == null) {
-      throw new IllegalArgumentException("Can't assign itinerary to non-existing cargo " + trackingId);
-    }
+    logger.trace(fb -> fb.list(fb.apply(itinerary), fb.apply(trackingId)), () -> {
+        final Cargo cargo = cargoRepository.find(trackingId);
+        if (cargo == null) {
+          throw new IllegalArgumentException("Can't assign itinerary to non-existing cargo " + trackingId);
+        }
 
-    cargo.assignToRoute(itinerary);
-    cargoRepository.store(cargo);
+        cargo.assignToRoute(itinerary);
+        cargoRepository.store(cargo);
 
-    logger.info("Assigned cargo {} to new route", fb -> fb.apply(trackingId));
+        logger.info("Assigned cargo {} to new route", fb -> fb.apply(cargo));
+    });
   }
 
   @Override
@@ -85,8 +87,8 @@ public class BookingServiceImpl implements BookingService {
 
     cargoRepository.store(cargo);
     logger.info("Changed destination for cargo {} to {}", fb -> fb.list(
-      fb.apply(trackingId),
-      fb.keyValue("destination", routeSpecification.destination())
+      fb.apply(cargo),
+      fb.destination(routeSpecification.destination())
     ));
   }
 

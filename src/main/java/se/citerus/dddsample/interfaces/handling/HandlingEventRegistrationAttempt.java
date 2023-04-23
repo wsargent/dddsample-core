@@ -1,11 +1,10 @@
 package se.citerus.dddsample.interfaces.handling;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import se.citerus.dddsample.domain.model.cargo.TrackingId;
 import se.citerus.dddsample.domain.model.handling.HandlingEvent;
 import se.citerus.dddsample.domain.model.location.UnLocode;
 import se.citerus.dddsample.domain.model.voyage.VoyageNumber;
+import se.citerus.dddsample.logging.FieldBuilder;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -66,7 +65,7 @@ public final class HandlingEventRegistrationAttempt implements Serializable {
 
   @Override
   public String toString() {
-    return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+    return FieldBuilder.instance().apply(this).toString();
   }
   
 }

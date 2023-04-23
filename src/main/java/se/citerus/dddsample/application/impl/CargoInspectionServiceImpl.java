@@ -36,7 +36,7 @@ public class CargoInspectionServiceImpl implements CargoInspectionService {
 
     final Cargo cargo = cargoRepository.find(trackingId);
     if (cargo == null) {
-      logger.warn("Can't inspect non-existing cargo {}", fb -> fb.apply(trackingId));
+      logger.warn("Can't inspect non-existing cargo {}", fb -> fb.apply(cargo));
       return;
     }
 

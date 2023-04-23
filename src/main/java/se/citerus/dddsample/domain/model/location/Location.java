@@ -2,6 +2,7 @@ package se.citerus.dddsample.domain.model.location;
 
 import org.apache.commons.lang3.Validate;
 import se.citerus.dddsample.domain.shared.Entity;
+import se.citerus.dddsample.logging.FieldBuilder;
 
 import javax.persistence.*;
 
@@ -101,7 +102,7 @@ public final class Location implements Entity<Location> {
 
   @Override
   public String toString() {
-    return name + " [" + unlocode + "]";
+    return FieldBuilder.instance().apply(this).toString();
   }
 
   Location() {

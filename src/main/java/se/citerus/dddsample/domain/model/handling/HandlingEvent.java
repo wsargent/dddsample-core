@@ -8,6 +8,7 @@ import se.citerus.dddsample.domain.model.location.Location;
 import se.citerus.dddsample.domain.model.voyage.Voyage;
 import se.citerus.dddsample.domain.shared.DomainEvent;
 import se.citerus.dddsample.domain.shared.ValueObject;
+import se.citerus.dddsample.logging.FieldBuilder;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -223,18 +224,7 @@ public final class HandlingEvent implements DomainEvent<HandlingEvent> {
 
   @Override
   public String toString() {
-    final StringBuilder builder = new StringBuilder("\n--- Handling event ---\n").
-      append("Cargo: ").append(cargo.trackingId()).append("\n").
-      append("Type: ").append(type).append("\n").
-      append("Location: ").append(location.name()).append("\n").
-      append("Completed on: ").append(completionTime).append("\n").
-      append("Registered on: ").append(registrationTime).append("\n");
-    
-    if (voyage != null) {
-      builder.append("Voyage: ").append(voyage.voyageNumber()).append("\n");
-    }
-
-    return builder.toString();
+    return FieldBuilder.instance().apply(this).toString();
   }
 
   HandlingEvent() {

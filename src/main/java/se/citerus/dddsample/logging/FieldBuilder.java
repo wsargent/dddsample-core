@@ -4,40 +4,51 @@ import com.tersesystems.echopraxia.api.Field;
 import com.tersesystems.echopraxia.api.FieldBuilderResult;
 import com.tersesystems.echopraxia.api.Value;
 import org.jetbrains.annotations.NotNull;
-import se.citerus.dddsample.domain.model.cargo.Cargo;
-import se.citerus.dddsample.domain.model.cargo.Delivery;
-import se.citerus.dddsample.domain.model.cargo.RouteSpecification;
-import se.citerus.dddsample.domain.model.cargo.TrackingId;
+import se.citerus.dddsample.domain.model.cargo.*;
 import se.citerus.dddsample.domain.model.handling.HandlingEvent;
 import se.citerus.dddsample.domain.model.location.Location;
 import se.citerus.dddsample.domain.model.location.UnLocode;
+import se.citerus.dddsample.domain.model.voyage.CarrierMovement;
+import se.citerus.dddsample.domain.model.voyage.Schedule;
+import se.citerus.dddsample.domain.model.voyage.Voyage;
 import se.citerus.dddsample.domain.model.voyage.VoyageNumber;
 import se.citerus.dddsample.interfaces.handling.HandlingEventRegistrationAttempt;
+import se.citerus.dddsample.interfaces.tracking.TrackCommand;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
-class FieldBuilderInstance {
-    static FieldBuilder INSTANCE = new FieldBuilder() {};
-}
 
-public interface FieldBuilder extends com.tersesystems.echopraxia.api.FieldBuilder {
+public class FieldBuilder implements com.tersesystems.echopraxia.api.FieldBuilder {
+    private static final FieldBuilder INSTANCE = new FieldBuilder();
 
-    static @NotNull FieldBuilder instance() {
-        return FieldBuilderInstance.INSTANCE;
+    public static @NotNull FieldBuilder instance() {
+        return INSTANCE;
     }
 
-    default Field apply(TrackingId trackingId) {
-        return keyValue("trackingId", Value.string(trackingId.idString()));
+    public Field apply(TrackingId trackingId) {
+        return keyValue("trackingId", trackingIdValue(trackingId));
     }
 
-    default Field keyValue(String name, Location location) {
-        return object(name, locationValue(location));
+    @NotNull
+    private Value<?> trackingIdValue(TrackingId trackingId) {
+        return (trackingId == null) ? Value.nullValue() : Value.string(trackingId.idString());
     }
 
-    private Value.ObjectValue locationValue(Location location) {
+    public Field destination(Location destination) {
+        return keyValue("destination", locationValue(destination));
+    }
+
+    public Field apply(Location location) {
+        return keyValue("location", locationValue(location));
+    }
+
+    private Value<?> locationValue(Location location) {
+        if (location == null) {
+            return Value.nullValue();
+        }
         return Value.object(
             keyValue("locationId", Value.number(location.id)),
             apply(location.unLocode()),
@@ -45,19 +56,22 @@ public interface FieldBuilder extends com.tersesystems.echopraxia.api.FieldBuild
         );
     }
 
-    default Field apply(UnLocode unLocode) {
+    public Field apply(UnLocode unLocode) {
        return keyValue("unLocode", unlocadeValue(unLocode));
     }
 
-    private Value.StringValue unlocadeValue(UnLocode unLocode) {
-        return Value.string(unLocode.idString());
+    private Value<?> unlocadeValue(UnLocode unLocode) {
+        return (unLocode != null) ? Value.string(unLocode.idString()) : Value.nullValue();
     }
 
-    default Field apply(Cargo cargo) {
-        return object("cargo", cargoValue(cargo));
+    public Field apply(Cargo cargo) {
+        return keyValue("cargo", cargoValue(cargo));
     }
 
-    private Value.ObjectValue cargoValue(Cargo cargo) {
+    private Value<?> cargoValue(Cargo cargo) {
+        if (cargo == null) {
+            return Value.nullValue();
+        }
         return Value.object(
           keyValue("cargoId", Value.number(cargo.id)),
           apply(cargo.delivery()),
@@ -66,66 +80,82 @@ public interface FieldBuilder extends com.tersesystems.echopraxia.api.FieldBuild
         );
     }
 
-    default Field apply(RouteSpecification routeSpecification) {
-        return object("routeSpecification", routeSpecificationValue(routeSpecification));
+    public Field apply(RouteSpecification routeSpecification) {
+        return keyValue("routeSpecification", routeSpecificationValue(routeSpecification));
     }
 
-    private Value.ObjectValue routeSpecificationValue(RouteSpecification rs) {
+    private Value<?> routeSpecificationValue(RouteSpecification rs) {
+        if (rs == null) {
+            return Value.nullValue();
+        }
         return Value.object(
-                keyValue("destination", rs.destination()),
-                keyValue("origin", rs.origin()),
+                destination(rs.destination()),
+                origin(rs.origin()),
                 keyValue("arrivalDeadline", instantValue(rs.arrivalDeadline()))
         );
     }
 
-    default Field apply(Delivery delivery) {
-        return object("delivery", deliveryValue(delivery));
+    private Field origin(Location origin) {
+        return keyValue("origin", locationValue(origin));
     }
 
-    private Value.ObjectValue deliveryValue(Delivery delivery) {
+    Field apply(Delivery delivery) {
+        return keyValue("delivery", deliveryValue(delivery));
+    }
+
+    private Value<?> deliveryValue(Delivery delivery) {
+        if (delivery == null) {
+            return Value.nullValue();
+        }
         return Value.object(
-                keyValue("eta", etaValue(delivery.estimatedTimeOfArrival())),
-                keyValue("lastKnownLocation", delivery.lastKnownLocation),
+                keyValue("eta", instantValue(delivery.estimatedTimeOfArrival())),
+                keyValue("lastKnownLocation", locationValue(delivery.lastKnownLocation())),
                 keyValue("isMisdirected", Value.bool(delivery.isMisdirected())),
                 keyValue("calculatedAt", instantValue(delivery.calculatedAt()))
         );
     }
 
-    private Value<String> instantValue(Instant instant) {
-        return Value.string(DateTimeFormatter.ISO_INSTANT.format(instant));
+    private Value<?> instantValue(Instant instant) {
+        return instant == null ? Value.nullValue() : Value.string(DateTimeFormatter.ISO_INSTANT.format(instant));
     }
 
-    private Value<?> etaValue(Instant instant) {
-        if (instant == null) { // "ETA_UNKNOWN" is private
-            return Value.nullValue();
-        } else {
-            return instantValue(instant);
-        }
-    }
-
-    default Field apply(HandlingEvent event) {
+    public Field apply(HandlingEvent event) {
         return keyValue("handlingEvent", handlingEventValue(event));
     }
 
-    private Value.ObjectValue handlingEventValue(HandlingEvent event) {
+    private Value<?> handlingEventValue(HandlingEvent event) {
+        if (event == null) {
+            return Value.nullValue();
+        }
         return Value.object(
             number("handlingEventId", event.id),
             apply(event.type()),
-            keyValue("cargo", cargoValue(event.cargo())),
-            keyValue("location", event.location()),
-            keyValue("completionTime", instantValue(event.completionTime)),
-            keyValue("registrationTime", instantValue(event.registrationTime))
+            apply(event.cargo()),
+            apply(event.location()),
+            completionTime(event.completionTime()),
+            registrationTime(event.registrationTime())
         );
     }
 
-    default FieldBuilderResult apply(HandlingEventRegistrationAttempt attempt) {
+    public Field completionTime(Instant completionTime) {
+       return keyValue("completionTime", instantValue(completionTime));
+    }
+
+    public Field registrationTime(Instant registrationTime) {
+        return keyValue("registrationTime", instantValue(registrationTime));
+    }
+
+    public Field apply(HandlingEventRegistrationAttempt attempt) {
         return keyValue("handlingEventRegistrationAttempt", handlingEventRegistrationAttemptValue(attempt));
     }
 
-    default Value.ObjectValue handlingEventRegistrationAttemptValue(HandlingEventRegistrationAttempt attempt) {
+    public Value<?> handlingEventRegistrationAttemptValue(HandlingEventRegistrationAttempt attempt) {
+        if (attempt == null) {
+            return Value.nullValue();
+        }
         return Value.object(
-          keyValue("completionTime", instantValue(attempt.getCompletionTime())) ,
-          keyValue("registrationTime", instantValue(attempt.getRegistrationTime())),
+          completionTime(attempt.getCompletionTime()),
+          registrationTime(attempt.getRegistrationTime()),
           apply(attempt.getTrackingId()),
           apply(attempt.getUnLocode()),
           apply(attempt.getType()),
@@ -133,19 +163,69 @@ public interface FieldBuilder extends com.tersesystems.echopraxia.api.FieldBuild
         );
     }
 
-    default Field apply(VoyageNumber voyageNumber) {
-        return keyValue("voyageNumber", Value.string(voyageNumber.idString()));
+    public Field apply(VoyageNumber voyageNumber) {
+        return keyValue("voyageNumber", voyageNumberValue(voyageNumber));
     }
 
-    default Field apply(HandlingEvent.Type type) {
-        return keyValue("handlingEventType", Value.string(type.toString()));
+    private Value<?> voyageNumberValue(VoyageNumber voyageNumber) {
+        return voyageNumber != null ? Value.string(voyageNumber.idString()) : Value.nullValue();
     }
 
-    default Field apply(Message message) {
+    public Field apply(Voyage voyage) {
+        return keyValue("voyage", voyageValue(voyage));
+    }
+
+    private Value<?> voyageValue(Voyage voyage) {
+        if (voyage == null) {
+            return Value.nullValue();
+        }
+        return Value.object(
+          apply(voyage.voyageNumber()),
+          apply(voyage.schedule())
+        );
+    }
+
+    public Field apply(Schedule schedule) {
+        return keyValue("schedule", scheduleValue(schedule));
+    }
+
+    private Value<?> scheduleValue(Schedule schedule) {
+        if (schedule == null) {
+            return Value.nullValue();
+        }
+        return Value.object(
+          array("carrierMovements", Value.array(this::carrierMovementValue, schedule.carrierMovements()))
+        );
+    }
+
+    private Value<?> carrierMovementValue(CarrierMovement cm) {
+        if (cm == null) {
+            return Value.nullValue();
+        }
+        return Value.object(
+          keyValue("arrivalLocation", locationValue(cm.arrivalLocation())),
+          keyValue("arrivalTime", instantValue(cm.arrivalTime())),
+          keyValue("departureTime", instantValue(cm.departureTime())),
+          keyValue("departureLocation", locationValue(cm.departureLocation()))
+        );
+    }
+
+    public Field apply(HandlingEvent.Type type) {
+        return keyValue("handlingEventType", typeValue(type));
+    }
+
+    private Value<?> typeValue(HandlingEvent.Type type) {
+        return type != null ? Value.string(type.toString()) : Value.nullValue();
+    }
+
+    public Field apply(Message message) {
         return keyValue("jmsMessage", messageValue(message));
     }
 
-    private Value.ObjectValue messageValue(Message message) {
+    private Value<?> messageValue(Message message) {
+        if (message == null) {
+            return Value.nullValue();
+        }
         try {
             return Value.object(
                     keyValue("jmsMessageId", Value.string(message.getJMSMessageID())),
@@ -157,5 +237,36 @@ public interface FieldBuilder extends com.tersesystems.echopraxia.api.FieldBuild
                 keyValue("toString", Value.string(message.toString()))
             );
         }
+    }
+
+    public Field apply(Itinerary itinerary) {
+        return Field.keyValue("itinerary", itineraryValue(itinerary));
+    }
+
+    private Value<?> itineraryValue(Itinerary itinerary) {
+        return Value.object(
+          array("legs", Value.array(this::legValue, itinerary.legs()))
+        );
+    }
+
+    private Value<?> legValue(Leg leg) {
+        return Value.object(
+          keyValue("legId", Value.number(leg.id)),
+          apply(leg.voyage.voyageNumber()),
+          keyValue("loadLocation", locationValue(leg.loadLocation())),
+          keyValue("loadTime", instantValue(leg.loadTime())),
+          keyValue("unloadLocation", locationValue(leg.unloadLocation())),
+          keyValue("unloadTime", instantValue(leg.unloadTime()))
+        );
+    }
+
+    public Object apply(TrackCommand trackCommand) {
+        return keyValue("trackCommand", trackCommandValue(trackCommand));
+    }
+
+    private Value<?> trackCommandValue(TrackCommand trackCommand) {
+        return (trackCommand != null)
+          ? Value.object(keyValue("trackingId", Value.string(trackCommand.getTrackingId())))
+          : Value.nullValue();
     }
 }
