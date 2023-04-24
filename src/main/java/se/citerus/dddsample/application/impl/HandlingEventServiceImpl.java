@@ -38,6 +38,14 @@ public class HandlingEventServiceImpl implements HandlingEventService {
                                     final VoyageNumber voyageNumber,
                                     final UnLocode unLocode,
                                     final HandlingEvent.Type type) throws CannotCreateHandlingEventException {
+    logger.trace("entering {} {} {} {} {}", fb -> fb.list(
+      fb.completionTime(completionTime),
+      fb.apply(trackingId),
+      fb.apply(voyageNumber),
+      fb.apply(unLocode),
+      fb.apply(type)
+    ));
+
     final Instant registrationTime = Instant.now();
     /* Using a factory to create a HandlingEvent (aggregate). This is where
        it is determined whether the incoming data, the attempt, actually is capable

@@ -38,6 +38,12 @@ public class BookingServiceImpl implements BookingService {
   public TrackingId bookNewCargo(final UnLocode originUnLocode,
                                  final UnLocode destinationUnLocode,
                                  final Instant arrivalDeadline) {
+    logger.trace("bookNewCargo: {} {} {}", fb -> fb.list(
+      fb.keyValue("originUnLocode", originUnLocode),
+      fb.keyValue("destinationUnLocode", destinationUnLocode),
+      fb.keyValue("arrivalDeadline", arrivalDeadline)
+    ));
+
     Cargo cargo = cargoFactory.createCargo(originUnLocode, destinationUnLocode, arrivalDeadline);
 
     cargoRepository.store(cargo);
@@ -49,6 +55,7 @@ public class BookingServiceImpl implements BookingService {
   @Override
   @Transactional
   public List<Itinerary> requestPossibleRoutesForCargo(final TrackingId trackingId) {
+    logger.trace("requestPossibleRoutesForCargo: {}", fb -> fb.apply(trackingId));
     final Cargo cargo = cargoRepository.find(trackingId);
 
     if (cargo == null) {
@@ -61,22 +68,24 @@ public class BookingServiceImpl implements BookingService {
   @Override
   @Transactional
   public void assignCargoToRoute(final Itinerary itinerary, final TrackingId trackingId) {
-    logger.trace(fb -> fb.list(fb.apply(itinerary), fb.apply(trackingId)), () -> {
-        final Cargo cargo = cargoRepository.find(trackingId);
-        if (cargo == null) {
-          throw new IllegalArgumentException("Can't assign itinerary to non-existing cargo " + trackingId);
-        }
+    logger.trace("assignCargoToRoute: {} {}", fb -> fb.list(fb.apply(itinerary), fb.apply(trackingId)));
 
-        cargo.assignToRoute(itinerary);
-        cargoRepository.store(cargo);
+    final Cargo cargo = cargoRepository.find(trackingId);
+    if (cargo == null) {
+      throw new IllegalArgumentException("Can't assign itinerary to non-existing cargo " + trackingId);
+    }
 
-        logger.info("Assigned cargo {} to new route", fb -> fb.apply(cargo));
-    });
+    cargo.assignToRoute(itinerary);
+    cargoRepository.store(cargo);
+
+    logger.info("Assigned cargo {} to new route", fb -> fb.apply(cargo));
   }
 
   @Override
   @Transactional
   public void changeDestination(final TrackingId trackingId, final UnLocode unLocode) {
+    logger.trace("changeDestination: {} {}", fb -> fb.list(fb.apply(trackingId), fb.apply(unLocode)));
+
     final Cargo cargo = cargoRepository.find(trackingId);
     final Location newDestination = locationRepository.find(unLocode);
 

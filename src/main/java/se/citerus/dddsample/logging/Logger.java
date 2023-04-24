@@ -27,18 +27,4 @@ public final class Logger extends AbstractLoggerSupport<Logger, FieldBuilder>
                 core.withCondition(Condition.never()), fieldBuilder(), Logger.class);
     }
 
-    public void trace(Function<FieldBuilder, FieldBuilderResult> fbf, Runnable r) {
-        if (! core.isEnabled(Level.TRACE)) {
-            r.run();
-        } else {
-            core.log(Level.TRACE, "entering: {}", fbf, fieldBuilder);
-            try {
-                r.run();
-                core.log(Level.TRACE, "exiting: {}", fbf, fieldBuilder);
-            } catch (RuntimeException e) {
-                core.log(Level.TRACE, "throwing: {}", fbf, fieldBuilder);
-                throw e;
-            }
-        }
-    }
 }

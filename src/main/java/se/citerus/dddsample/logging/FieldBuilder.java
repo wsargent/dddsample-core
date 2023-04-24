@@ -28,6 +28,14 @@ public class FieldBuilder implements com.tersesystems.echopraxia.api.FieldBuilde
         return INSTANCE;
     }
 
+    public Field keyValue(String name, UnLocode value) {
+        return keyValue(name, unlocadeValue(value));
+    }
+
+    public Field keyValue(String name, Instant instant) {
+        return keyValue(name, instantValue(instant));
+    }
+
     public Field apply(TrackingId trackingId) {
         return keyValue("trackingId", trackingIdValue(trackingId));
     }
@@ -269,4 +277,5 @@ public class FieldBuilder implements com.tersesystems.echopraxia.api.FieldBuilde
           ? Value.object(keyValue("trackingId", Value.string(trackCommand.getTrackingId())))
           : Value.nullValue();
     }
+
 }
