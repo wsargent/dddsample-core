@@ -4,8 +4,10 @@ import org.apache.commons.lang3.Validate;
 import se.citerus.dddsample.domain.model.handling.HandlingHistory;
 import se.citerus.dddsample.domain.model.location.Location;
 import se.citerus.dddsample.domain.shared.Entity;
+import se.citerus.dddsample.logging.FieldBuilder;
 
 import javax.persistence.*;
+import java.lang.reflect.Field;
 import java.util.List;
 
 /**
@@ -214,7 +216,7 @@ public class Cargo implements Entity<Cargo> {
 
   @Override
   public String toString() {
-    return trackingId;
+    return FieldBuilder.instance().apply(this).toString();
   }
 
   Cargo() {

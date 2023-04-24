@@ -1,7 +1,5 @@
 package se.citerus.dddsample.application.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import se.citerus.dddsample.application.BookingService;
 import se.citerus.dddsample.domain.model.cargo.*;
@@ -9,6 +7,8 @@ import se.citerus.dddsample.domain.model.location.Location;
 import se.citerus.dddsample.domain.model.location.LocationRepository;
 import se.citerus.dddsample.domain.model.location.UnLocode;
 import se.citerus.dddsample.domain.service.RoutingService;
+import se.citerus.dddsample.logging.Logger;
+import se.citerus.dddsample.logging.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
@@ -38,10 +38,16 @@ public class BookingServiceImpl implements BookingService {
   public TrackingId bookNewCargo(final UnLocode originUnLocode,
                                  final UnLocode destinationUnLocode,
                                  final Instant arrivalDeadline) {
+    logger.trace("bookNewCargo: {} {} {}", fb -> fb.list(
+      fb.keyValue("originUnLocode", originUnLocode),
+      fb.keyValue("destinationUnLocode", destinationUnLocode),
+      fb.keyValue("arrivalDeadline", arrivalDeadline)
+    ));
+
     Cargo cargo = cargoFactory.createCargo(originUnLocode, destinationUnLocode, arrivalDeadline);
 
     cargoRepository.store(cargo);
-    logger.info("Booked new cargo with tracking id {}", cargo.trackingId().idString());
+    logger.info("Booked new cargo {}", fb -> fb.apply(cargo));
 
     return cargo.trackingId();
   }
@@ -49,6 +55,7 @@ public class BookingServiceImpl implements BookingService {
   @Override
   @Transactional
   public List<Itinerary> requestPossibleRoutesForCargo(final TrackingId trackingId) {
+    logger.trace("requestPossibleRoutesForCargo: {}", fb -> fb.apply(trackingId));
     final Cargo cargo = cargoRepository.find(trackingId);
 
     if (cargo == null) {
@@ -61,6 +68,8 @@ public class BookingServiceImpl implements BookingService {
   @Override
   @Transactional
   public void assignCargoToRoute(final Itinerary itinerary, final TrackingId trackingId) {
+    logger.trace("assignCargoToRoute: {} {}", fb -> fb.list(fb.apply(itinerary), fb.apply(trackingId)));
+
     final Cargo cargo = cargoRepository.find(trackingId);
     if (cargo == null) {
       throw new IllegalArgumentException("Can't assign itinerary to non-existing cargo " + trackingId);
@@ -69,12 +78,14 @@ public class BookingServiceImpl implements BookingService {
     cargo.assignToRoute(itinerary);
     cargoRepository.store(cargo);
 
-    logger.info("Assigned cargo {} to new route", trackingId);
+    logger.info("Assigned cargo {} to new route", fb -> fb.apply(cargo));
   }
 
   @Override
   @Transactional
   public void changeDestination(final TrackingId trackingId, final UnLocode unLocode) {
+    logger.trace("changeDestination: {} {}", fb -> fb.list(fb.apply(trackingId), fb.apply(unLocode)));
+
     final Cargo cargo = cargoRepository.find(trackingId);
     final Location newDestination = locationRepository.find(unLocode);
 
@@ -84,7 +95,10 @@ public class BookingServiceImpl implements BookingService {
     cargo.specifyNewRoute(routeSpecification);
 
     cargoRepository.store(cargo);
-    logger.info("Changed destination for cargo {} to {}", trackingId, routeSpecification.destination());
+    logger.info("Changed destination for cargo {} to {}", fb -> fb.list(
+      fb.apply(cargo),
+      fb.destination(routeSpecification.destination())
+    ));
   }
 
 }

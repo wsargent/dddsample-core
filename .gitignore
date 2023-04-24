@@ -3,3 +3,6 @@ dddsample.iml
 .idea
 target
 /build/
+
+*.log
+*.ndjson

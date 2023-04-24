@@ -3,8 +3,8 @@ package se.citerus.dddsample.infrastructure.routing;
 import com.pathfinder.api.GraphTraversalService;
 import com.pathfinder.api.TransitEdge;
 import com.pathfinder.api.TransitPath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import se.citerus.dddsample.logging.Logger;
+import se.citerus.dddsample.logging.LoggerFactory;
 import se.citerus.dddsample.domain.model.cargo.Itinerary;
 import se.citerus.dddsample.domain.model.cargo.Leg;
 import se.citerus.dddsample.domain.model.cargo.RouteSpecification;
@@ -73,7 +73,9 @@ public class ExternalRoutingService implements RoutingService {
     if (routeSpecification.isSatisfiedBy(itinerary)) {
       return true;
     } else {
-      logger.warn("Received itinerary that did not satisfy the route specification");
+      logger.warn("Received itinerary {} that did not satisfy the route specification {}", fb -> fb.list(
+        fb.apply(itinerary), fb.apply(routeSpecification)
+      ));
       return false;
     }
   }

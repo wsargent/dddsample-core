@@ -1,8 +1,7 @@
 package se.citerus.dddsample.interfaces.tracking;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
+import se.citerus.dddsample.logging.FieldBuilder;
 
 public final class TrackCommand {
 
@@ -21,6 +20,6 @@ public final class TrackCommand {
 
   @Override
   public String toString() {
-    return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
+    return FieldBuilder.instance().apply(this).toString();
   }
 }

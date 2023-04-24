@@ -24,12 +24,17 @@ import se.citerus.dddsample.infrastructure.messaging.jms.InfrastructureMessaging
 import se.citerus.dddsample.infrastructure.routing.ExternalRoutingService;
 import se.citerus.dddsample.infrastructure.sampledata.SampleDataGenerator;
 import se.citerus.dddsample.interfaces.InterfacesApplicationContext;
+import se.citerus.dddsample.logging.Logger;
+import se.citerus.dddsample.logging.LoggerFactory;
 
 import javax.persistence.EntityManager;
+
+import java.lang.invoke.MethodHandles;
 
 @Configuration
 @Import({InterfacesApplicationContext.class, InfrastructureMessagingJmsConfig.class})
 public class DDDSampleApplicationContext {
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Autowired
     CargoRepository cargoRepository;
@@ -93,7 +98,7 @@ public class DDDSampleApplicationContext {
         try {
             sampleDataGenerator.generate(); // TODO investigate if this can be called with initMethod in the annotation
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
         return sampleDataGenerator;
